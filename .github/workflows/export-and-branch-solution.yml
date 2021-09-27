@@ -4,26 +4,17 @@ on:
   workflow_dispatch:
     inputs:
       solution_name:
-        description: 'name of the solution to worked on from Power Platform'
+        description: 'Name of the solution'
         required: true
         default: Contoso
-      solution_exported_folder:
-        description: 'folder name for staging the exported solution *do not change*'
-        required: true
-        default: out/exported/
-      solution_folder:
-        description: 'staging the unpacked solution folder before check-in *do not change*'
-        required: true
-        default: out/solutions/
-      solution_target_folder:
-       description: 'folder name to be created and checked in *do not change*'
-       required: true
-       default: solutions/
 
 env:
   ENVIRONMENT_URL: https://org0f6c900e.crm11.dynamics.com
   CLIENT_ID: 9731d9ca-caa2-46ac-a63d-27170f99e8aa
   TENANT_ID: ba849a9d-e594-49b2-a4fd-a62f28d46a24
+  SOLUTION_FOLDER: out/solutions/
+  SOLUTION_EXPORTED_FOLDER: out/exported/
+  SOLUTION_TARGET_FOLDER: solutions/  
 
 jobs:
   export-from-dev:
@@ -36,7 +27,7 @@ jobs:
       with:
         lfs: true
 
-    - name: who-am-i action
+    - name: Login to Dataverse environment
       uses: microsoft/powerplatform-actions/who-am-i@0.4.0
       with:
         environment-url: ${{env.ENVIRONMENT_URL}}
@@ -44,28 +35,28 @@ jobs:
         client-secret: ${{ secrets.POWER_PLATFORM_SPN }}
         tenant-id: ${{env.TENANT_ID}}
 
-    - name: export-solution action
+    - name: Export solution from environment
       uses: microsoft/powerplatform-actions/export-solution@0.4.0
       with:
         environment-url: ${{env.ENVIRONMENT_URL}}
         app-id: ${{env.CLIENT_ID}}
         client-secret: ${{ secrets.POWER_PLATFORM_SPN }}
         tenant-id: ${{env.TENANT_ID}}
-        solution-name: ${{ github.event.inputs.solution_name }}
-        solution-output-file: ${{ github.event.inputs.solution_exported_folder}}/${{ github.event.inputs.solution_name }}.zip
+        solution-name: ${{env.SOLUTION_NAME}}
+        solution-output-file: ${{env.SOLUTION_EXPORTED_FOLDER}}/${{env.SOLUTION_NAME}}.zip
 
-    - name: unpack-solution action
+    - name: Unpack solution
       uses: microsoft/powerplatform-actions/unpack-solution@0.4.0
       with:
-        solution-file: ${{ github.event.inputs.solution_exported_folder}}/${{ github.event.inputs.solution_name }}.zip
-        solution-folder: ${{ github.event.inputs.solution_folder}}/${{ github.event.inputs.solution_name }}
+        solution-file: ${{env.SOLUTION_EXPORTED_FOLDER}}/${{env.SOLUTION_NAME}}.zip
+        solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
         solution-type: 'Unmanaged'
         overwrite-files: true
 
-    - name: branch-solution, prepare it for a PullRequest
+    - name: Add solution to branch and create Pull Request
       uses: microsoft/powerplatform-actions/branch-solution@0.4.0
       with:
-        solution-folder: ${{ github.event.inputs.solution_folder}}/${{ github.event.inputs.solution_name }}
-        solution-target-folder: ${{ github.event.inputs.solution_target_folder}}/${{ github.event.inputs.solution_name }}
+        solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
+        solution-target-folder: ${{env.SOLUTION_TARGET_FOLDER}}/${{env.SOLUTION_NAME}}
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         allow-empty-commit: true
