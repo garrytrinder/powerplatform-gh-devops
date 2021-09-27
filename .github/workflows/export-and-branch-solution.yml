@@ -21,6 +21,7 @@ on:
         default: 9731d9ca-caa2-46ac-a63d-27170f99e8aa
 
 env:
+  PP_ACTIONS_VERSION: 0.4.2
   ENVIRONMENT_URL: ${{ github.event.inputs.environment_url }}
   TENANT_ID: ${{ github.event.inputs.tenant_id }}
   CLIENT_ID: ${{ github.event.inputs.client_id }}
@@ -42,7 +43,7 @@ jobs:
         lfs: true
 
     - name: Login to Dataverse environment
-      uses: microsoft/powerplatform-actions/who-am-i@0.4.0
+      uses: microsoft/powerplatform-actions/who-am-i@${{env.PP_ACTIONS_VERSION}}
       with:
         environment-url: ${{env.ENVIRONMENT_URL}}
         app-id: ${{env.CLIENT_ID}}
@@ -50,7 +51,7 @@ jobs:
         tenant-id: ${{env.TENANT_ID}}
 
     - name: Export solution from environment
-      uses: microsoft/powerplatform-actions/export-solution@0.4.0
+      uses: microsoft/powerplatform-actions/export-solution@${{env.PP_ACTIONS_VERSION}}
       with:
         environment-url: ${{env.ENVIRONMENT_URL}}
         app-id: ${{env.CLIENT_ID}}
@@ -58,9 +59,18 @@ jobs:
         tenant-id: ${{env.TENANT_ID}}
         solution-name: ${{env.SOLUTION_NAME}}
         solution-output-file: ${{env.SOLUTION_EXPORTED_FOLDER}}/${{env.SOLUTION_NAME}}.zip
+    
+    - name: Check solution
+      uses: microsoft/powerplatform-actions/check-solution@${{env.PP_ACTIONS_VERSION}}
+      with:
+        environment-url: ${{env.ENVIRONMENT_URL}}
+        app-id: ${{env.CLIENT_ID}}
+        client-secret: ${{ secrets.POWER_PLATFORM_SPN }}
+        tenant-id: ${{env.TENANT_ID}}
+        path: ${{env.SOLUTION_EXPORTED_FOLDER}}/${{env.SOLUTION_NAME}}.zip
 
     - name: Unpack solution
-      uses: microsoft/powerplatform-actions/unpack-solution@0.4.0
+      uses: microsoft/powerplatform-actions/unpack-solution@${{env.PP_ACTIONS_VERSION}}
       with:
         solution-file: ${{env.SOLUTION_EXPORTED_FOLDER}}/${{env.SOLUTION_NAME}}.zip
         solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
@@ -68,7 +78,7 @@ jobs:
         overwrite-files: true
 
     - name: Add solution to branch and create PR
-      uses: microsoft/powerplatform-actions/branch-solution@0.4.0
+      uses: microsoft/powerplatform-actions/branch-solution@${{env.PP_ACTIONS_VERSION}}
       with:
         solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
         solution-target-folder: ${{env.SOLUTION_TARGET_FOLDER}}/${{env.SOLUTION_NAME}}
