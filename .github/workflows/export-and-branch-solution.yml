@@ -77,7 +77,7 @@ jobs:
         overwrite-files: true
 
     - name: Add solution to branch and create PR
-      uses: microsoft/powerplatform-actions/branch-solution@0.4.2
+      uses: microsoft/powerplatform-actions/branch-solution@0.4.0
       with:
         solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
         solution-target-folder: ${{env.SOLUTION_TARGET_FOLDER}}/${{env.SOLUTION_NAME}}
