@@ -1,4 +1,4 @@
-name: Deploy environment
+name: Deploy solution to environment
 
 on:
   workflow_dispatch:
