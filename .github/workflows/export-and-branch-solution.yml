@@ -7,18 +7,31 @@ on:
         description: 'Name of the solution'
         required: true
         default: Contoso
+      environment_url:
+        description: 'URL of the environment where the solution is located'
+        required: true
+        default: https://org0f6c900e.crm11.dynamics.com
+      tenant_id:
+        description: 'Tenant ID where the environment is located'
+        required: true
+        default: ba849a9d-e594-49b2-a4fd-a62f28d46a24
+      client_id:
+        description: 'Client ID of the Service Principal'
+        required: true
+        default: 9731d9ca-caa2-46ac-a63d-27170f99e8aa
 
 env:
-  ENVIRONMENT_URL: https://org0f6c900e.crm11.dynamics.com
-  CLIENT_ID: 9731d9ca-caa2-46ac-a63d-27170f99e8aa
-  TENANT_ID: ba849a9d-e594-49b2-a4fd-a62f28d46a24
+  ENVIRONMENT_URL: ${{ github.event.inputs.environment_url }}
+  TENANT_ID: ${{ github.event.inputs.tenant_id }}
+  CLIENT_ID: ${{ github.event.inputs.client_id }}
   SOLUTION_NAME: ${{ github.event.inputs.solution_name }}
   SOLUTION_FOLDER: out/solutions/
   SOLUTION_EXPORTED_FOLDER: out/exported/
-  SOLUTION_TARGET_FOLDER: solutions/  
+  SOLUTION_TARGET_FOLDER: solutions/
 
 jobs:
-  export-from-dev:
+  export-and-branch:
+    name: Export solution and create PR
     runs-on: windows-latest
     env:
       RUNNER_DEBUG: 1
@@ -54,7 +67,7 @@ jobs:
         solution-type: 'Unmanaged'
         overwrite-files: true
 
-    - name: Add solution to branch and create Pull Request
+    - name: Add solution to branch and create PR
       uses: microsoft/powerplatform-actions/branch-solution@0.4.0
       with:
         solution-folder: ${{env.SOLUTION_FOLDER}}/${{env.SOLUTION_NAME}}
