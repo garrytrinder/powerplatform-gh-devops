@@ -1,4 +1,4 @@
-name: export-and-branch-solution
+name: Export solution and create PR
 
 on:
   workflow_dispatch:
