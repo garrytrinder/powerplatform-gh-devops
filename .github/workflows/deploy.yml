@@ -98,7 +98,7 @@ jobs:
     - name: Import solution to prod env
       uses: microsoft/powerplatform-actions/import-solution@0.4.0
       with:
-        environment-url: ${{env.BUILD_ENVIRONMENT_URL}}
+        environment-url: ${{env.ENVIRONMENT_URL}}
         app-id: ${{env.CLIENT_ID}}
         client-secret: ${{ secrets.POWER_PLATFORM_SPN }}
         tenant-id: ${{env.TENANT_ID}}
