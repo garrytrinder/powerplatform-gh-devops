@@ -12,6 +12,7 @@ env:
   ENVIRONMENT_URL: https://org0f6c900e.crm11.dynamics.com
   CLIENT_ID: 9731d9ca-caa2-46ac-a63d-27170f99e8aa
   TENANT_ID: ba849a9d-e594-49b2-a4fd-a62f28d46a24
+  SOLUTION_NAME: ${{ github.event.inputs.solution_name }}
   SOLUTION_FOLDER: out/solutions/
   SOLUTION_EXPORTED_FOLDER: out/exported/
   SOLUTION_TARGET_FOLDER: solutions/  
