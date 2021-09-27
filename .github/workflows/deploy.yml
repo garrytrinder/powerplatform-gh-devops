@@ -1,4 +1,4 @@
-name: Deploy solution to environment
+name: Deploy environment
 
 on:
   workflow_dispatch:
@@ -11,8 +11,12 @@ on:
         description: 'URL of the environment to deploy the solution to'
         required: true
         default: https://orgd3e762c1.crm11.dynamics.com
+      build_environment_url:
+        description: 'URL of the environment to build the solution in'
+        required: true
+        default: https://org4c264e1e.crm11.dynamics.com
       tenant_id:
-        description: 'Tenant ID where the environment is located'
+        description: 'Tenant ID where the environments are located'
         required: true
         default: ba849a9d-e594-49b2-a4fd-a62f28d46a24
       client_id:
@@ -22,7 +26,7 @@ on:
 
 env:
   ENVIRONMENT_URL: ${{ github.event.inputs.environment_url }}
-  BUILD_ENVIRONMENT_URL: https://org4c264e1e.crm11.dynamics.com
+  BUILD_ENVIRONMENT_URL: ${{ github.event.inputs.build_environment_url }}
   TENANT_ID: ${{ github.event.inputs.tenant_id }}
   CLIENT_ID: ${{ github.event.inputs.client_id }}
   SOLUTION_NAME: ${{ github.event.inputs.solution_name }}
@@ -32,7 +36,7 @@ env:
   SOLUTION_RELEASE_FOLDER: out/release/
 
 jobs:
-  convert-to-managed:
+  convert-solution-to-managed:
     name: Convert solution to managed
     runs-on: windows-latest
     env:
@@ -43,14 +47,14 @@ jobs:
       with:
         lfs: true
 
-    - name: Pack solution
+    - name: Pack solution from source control
       uses: microsoft/powerplatform-actions/pack-solution@0.4.2
       with:
         solution-folder: ${{ env.SOLUTION_FOLDER }}
         solution-file: ${{ env.SOLUTION_OUTBOUND_FOLDER }}/${{ env.SOLUTION_NAME }}.zip
         solution-type: Unmanaged
 
-    - name: Import solution as unmanaged to build env
+    - name: Import solution as unmanaged to build environment
       uses: microsoft/powerplatform-actions/import-solution@v0
       with:
         environment-url: ${{env.BUILD_ENVIRONMENT_URL}}
@@ -61,7 +65,7 @@ jobs:
         force-overwrite: true
         publish-changes: true
 
-    - name: Export solution as managed
+    - name: Export solution as managed from build environment
       uses: microsoft/powerplatform-actions/export-solution@0.4.0
       with:
         environment-url: ${{env.BUILD_ENVIRONMENT_URL}}
@@ -72,14 +76,15 @@ jobs:
         managed: true
         solution-output-file: ${{ env.SOLUTION_SHIP_FOLDER}}/${{ env.SOLUTION_NAME }}.zip
 
-    - name: Upload the ready to ship solution to GH artifact store
+    - name: Publish solution artifact
       uses: actions/upload-artifact@v2
       with:
         name: managedSolutions
         path: ${{ env.SOLUTION_SHIP_FOLDER}}/${{ env.SOLUTION_NAME }}.zip
 
-  release-to-staging:
-    needs: [ convert-to-managed ]
+  deploy-managed-solution-to-environment:
+    name: Deploy managed solution
+    needs: [ convert-solution-to-managed ]
     runs-on: windows-latest
     env:
       RUNNER_DEBUG: 1
@@ -89,13 +94,13 @@ jobs:
       with:
         lfs: true
 
-    - name: Fetch the ready to ship solution from GH artifact store
+    - name: Download solution artifact
       uses: actions/download-artifact@v2
       with:
         name: managedSolutions
         path: ${{ env.SOLUTION_RELEASE_FOLDER}}
 
-    - name: Import solution to prod env
+    - name: Import and publish solution
       uses: microsoft/powerplatform-actions/import-solution@0.4.0
       with:
         environment-url: ${{env.ENVIRONMENT_URL}}
